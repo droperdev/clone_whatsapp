@@ -49,13 +49,9 @@ class MyApp extends StatelessWidget {
             ),
             body: TabBarView(
               children: [
-                Text(
-                  '1',
-                ),
-                ChatList(),
-                Text(
-                  '1',
-                ),
+                ContentCamera(),
+                ContentChat(),
+                ContentStatus(),
                 Text(
                   '1',
                 )
@@ -66,7 +62,14 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class ChatList extends StatelessWidget {
+class ContentCamera extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+class ContentChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -80,41 +83,140 @@ class ChatList extends StatelessWidget {
           color: Colors.grey[250],
         ),
         itemBuilder: (_, index) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: ListTile(
-                  leading: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: CircleAvatar(
-                      radius: 24,
-                      child: Icon(Icons.person),
-                    ),
-                  ),
-                  title: Text(
-                    'Juan Perez',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  subtitle: Text('Muchas gracias'),
-                  trailing: Text(
+          return ItemChat('Juan Perez', 'muchas gracias', true);
+        },
+      ),
+    );
+  }
+}
+
+class ItemChat extends StatelessWidget {
+  final String title;
+  final String subTitle;
+  final bool showTrailing;
+  ItemChat(this.title, this.subTitle, this.showTrailing);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: ListTile(
+            leading: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: CircleAvatar(
+                radius: 24,
+                child: Icon(Icons.person),
+              ),
+            ),
+            title: Text(
+              this.title,
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            subtitle: Text(this.subTitle),
+            trailing: this.showTrailing
+                ? Text(
                     'Ayer',
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.grey,
                     ),
-                  ),
-                  onTap: () {
-                    print('item');
-                  },
-                ),
+                  )
+                : null,
+            onTap: () {
+              print('item');
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ContentStatus extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SingleChildScrollView(
+        scrollDirection: Axis.vertical,
+        child: Column(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            ItemChat('Mi estado', 'Añade una actualización', false),
+            Container(
+              width: MediaQuery.of(context).size.width * 1,
+              color: Colors.grey[300],
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Recientes'),
               ),
-            ],
-          );
-        },
+            ),
+            ListView.separated(
+              shrinkWrap: true,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                thickness: 1,
+                indent: 84.0,
+                endIndent: 12.0,
+                color: Colors.grey[250],
+              ),
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: 5,
+              itemBuilder: (_, index) {
+                return ItemChat(
+                  'Pancho Fierro',
+                  'hace 8 minutos',
+                  false,
+                );
+              },
+            ),
+            Container(
+              width: MediaQuery.of(context).size.width * 1,
+              color: Colors.grey[300],
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text('Vistos'),
+              ),
+            ),
+            ListView.separated(
+              shrinkWrap: true,
+              separatorBuilder: (context, index) => Divider(
+                height: 1,
+                thickness: 1,
+                indent: 84.0,
+                endIndent: 12.0,
+                color: Colors.grey[250],
+              ),
+              physics: NeverScrollableScrollPhysics(),
+              itemCount: 5,
+              itemBuilder: (_, index) {
+                return ItemChat(
+                  'Pancho Fierro',
+                  'hace 8 minutos',
+                  false,
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(
+          Icons.camera_alt,
+        ),
+        backgroundColor: Color(0xFF01A909),
+        onPressed: () {},
       ),
     );
+  }
+}
+
+class ContentCall extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container();
   }
 }
