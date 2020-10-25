@@ -1,10 +1,20 @@
+import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final cameras = await availableCameras();
+  final firstCamera = cameras.first;
+  runApp(CloneWhatsApp(firstCamera));
 }
 
-class MyApp extends StatelessWidget {
+const _primaryColor = Color(0xFF075E54);
+const _buttonColor = Color(0xFF01A909);
+
+class CloneWhatsApp extends StatelessWidget {
+  final CameraDescription camera;
+  CloneWhatsApp(this.camera);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -12,7 +22,7 @@ class MyApp extends StatelessWidget {
         length: 4,
         child: Scaffold(
             appBar: AppBar(
-              backgroundColor: Color(0xFF075E54),
+              backgroundColor: _primaryColor,
               title: Text('WhatsApp'),
               actions: [
                 IconButton(
@@ -49,12 +59,12 @@ class MyApp extends StatelessWidget {
             ),
             body: TabBarView(
               children: [
-                ContentCamera(),
+                ContentCamera(
+                  camera: this.camera,
+                ),
                 ContentChat(),
                 ContentStatus(),
-                Text(
-                  '1',
-                )
+                ContentCall(),
               ],
             )),
       ),
@@ -62,18 +72,62 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class ContentCamera extends StatelessWidget {
+class ContentCamera extends StatefulWidget {
+  final CameraDescription camera;
+
+  const ContentCamera({
+    Key key,
+    @required this.camera,
+  }) : super(key: key);
+
+  @override
+  _ContentCameraState createState() => _ContentCameraState();
+}
+
+class _ContentCameraState extends State<ContentCamera> {
+  CameraController _controller;
+  Future<void> _initializeControllerFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = CameraController(
+      widget.camera,
+      ResolutionPreset.medium,
+    );
+    _initializeControllerFuture = _controller.initialize();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Container(
+      child: FutureBuilder<void>(
+        future: _initializeControllerFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.done) {
+            return CameraPreview(_controller);
+          } else {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
+    );
   }
 }
 
 class ContentChat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container(
-      child: ListView.separated(
+    return Scaffold(
+      body: ListView.separated(
         itemCount: 12,
         separatorBuilder: (context, index) => Divider(
           height: 1,
@@ -83,8 +137,13 @@ class ContentChat extends StatelessWidget {
           color: Colors.grey[250],
         ),
         itemBuilder: (_, index) {
-          return ItemChat('Juan Perez', 'muchas gracias', true);
+          return ItemChat('Juan Perez', 'muchas gracias', true, null);
         },
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: _buttonColor,
+        child: Icon(Icons.message),
+        onPressed: null,
       ),
     );
   }
@@ -94,7 +153,8 @@ class ItemChat extends StatelessWidget {
   final String title;
   final String subTitle;
   final bool showTrailing;
-  ItemChat(this.title, this.subTitle, this.showTrailing);
+  final IconButton icon;
+  ItemChat(this.title, this.subTitle, this.showTrailing, this.icon);
 
   @override
   Widget build(BuildContext context) {
@@ -117,15 +177,17 @@ class ItemChat extends StatelessWidget {
               ),
             ),
             subtitle: Text(this.subTitle),
-            trailing: this.showTrailing
-                ? Text(
-                    'Ayer',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
-                  )
-                : null,
+            trailing: this.icon == null
+                ? this.showTrailing
+                    ? Text(
+                        'Ayer',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      )
+                    : null
+                : this.icon,
             onTap: () {
               print('item');
             },
@@ -145,7 +207,12 @@ class ContentStatus extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
-            ItemChat('Mi estado', 'Añade una actualización', false),
+            ItemChat(
+              'Mi estado',
+              'Añade una actualización',
+              false,
+              null,
+            ),
             Container(
               width: MediaQuery.of(context).size.width * 1,
               color: Colors.grey[300],
@@ -166,11 +233,7 @@ class ContentStatus extends StatelessWidget {
               physics: NeverScrollableScrollPhysics(),
               itemCount: 5,
               itemBuilder: (_, index) {
-                return ItemChat(
-                  'Pancho Fierro',
-                  'hace 8 minutos',
-                  false,
-                );
+                return ItemChat('Pancho Fierro', 'hace 8 minutos', false, null);
               },
             ),
             Container(
@@ -193,11 +256,7 @@ class ContentStatus extends StatelessWidget {
               physics: NeverScrollableScrollPhysics(),
               itemCount: 5,
               itemBuilder: (_, index) {
-                return ItemChat(
-                  'Pancho Fierro',
-                  'hace 8 minutos',
-                  false,
-                );
+                return ItemChat('Pancho Fierro', 'hace 8 minutos', false, null);
               },
             ),
           ],
@@ -207,7 +266,7 @@ class ContentStatus extends StatelessWidget {
         child: Icon(
           Icons.camera_alt,
         ),
-        backgroundColor: Color(0xFF01A909),
+        backgroundColor: _buttonColor,
         onPressed: () {},
       ),
     );
@@ -217,6 +276,34 @@ class ContentStatus extends StatelessWidget {
 class ContentCall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Container();
+    return Scaffold(
+      body: ListView.separated(
+        itemBuilder: (_, index) => ItemChat(
+          'Papá',
+          '22 de Octubre 23:43',
+          false,
+          IconButton(
+            icon: Icon(
+              Icons.call,
+              color: _primaryColor,
+            ),
+            onPressed: null,
+          ),
+        ),
+        separatorBuilder: (context, index) => Divider(
+          height: 1,
+          thickness: 1,
+          indent: 84.0,
+          endIndent: 12.0,
+          color: Colors.grey[250],
+        ),
+        itemCount: 12,
+      ),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: _buttonColor,
+        child: Icon(Icons.call),
+        onPressed: null,
+      ),
+    );
   }
 }
