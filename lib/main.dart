@@ -233,7 +233,7 @@ class ContentStatus extends StatelessWidget {
               physics: NeverScrollableScrollPhysics(),
               itemCount: 5,
               itemBuilder: (_, index) {
-                return ItemChat('Pancho Fierro', 'hace 8 minutos', false, null);
+                return ItemChat('Juana de Arco', 'hace 8 minutos', false, null);
               },
             ),
             Container(
